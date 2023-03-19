@@ -1,0 +1,8 @@
+Django==3.2.3
+djangorestframework==3.12.4
+gunicorn==20.0.4
+Pillow==8.3.1
+pytest-django
+pytest-pythonpath
+psycopg2-binary==2.8.6
+python-dotenv~=0.21.1
