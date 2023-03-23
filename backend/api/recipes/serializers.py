@@ -1,6 +1,7 @@
 import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from rest_framework.fields import SerializerMethodField
 
 from api.users.serializers import UserSerializer
 from recipes.models import Ingredient, Recipe, Tag, RecipeIngredient
@@ -33,72 +34,82 @@ class IngredientSerializer(serializers.ModelSerializer):
 
 class RecipeIngredientSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(queryset=Ingredient.objects.all())
+    name = serializers.ReadOnlyField(source='ingredient.name')
+    measurement_unit = serializers.ReadOnlyField(
+        source='ingredient.measurement_unit'
+    )
 
     class Meta:
         model = RecipeIngredient
-        fields = ('id', 'amount', )
+        fields = ('id', 'name', 'measurement_unit', 'amount', )
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['id'] = instance.ingredient.id
+        return representation
 
 
 class RecipeDetailSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     ingredients = RecipeIngredientSerializer(many=True, required=True)
     tags = serializers.PrimaryKeyRelatedField(
-        many=True, required=False, queryset=Tag.objects.all()
+        queryset=Tag.objects.all(), many=True
     )
     image = Base64ImageField(required=True)
+    # is_favorited = SerializerMethodField()
+    # is_in_shopping_cart = SerializerMethodField()
 
     class Meta:
         model = Recipe
         fields = (
+            'id',
+            'tags',
             'author',
             'ingredients',
-            'tags',
+            # 'is_favorited',
+            # 'is_in_shopping_cart',
             'image',
             'name',
             'text',
             'cooking_time',
         )
 
-    def create(self, validated_data):
-        tags = validated_data.pop('tags')
-        ingredients_data = validated_data.pop('ingredients')
-        recipe = Recipe.objects.create(**validated_data)
-        recipe.tags.set(tags)
-        for ingredient in ingredients_data:
+    def to_representation(self, instance):
+        self.fields['tags'] = TagSerializer(many=True, read_only=True)
+        return super().to_representation(instance)
+
+    def get_or_update_ingredients(self, recipe, ingredients):
+        current_ingredients = RecipeIngredient.objects.filter(recipe=recipe)
+        if current_ingredients:
+            current_ingredients.delete()
+        for ingredient in ingredients:
             RecipeIngredient.objects.get_or_create(
                 recipe=recipe,
                 ingredient=ingredient['id'],
                 amount=ingredient['amount']
             )
+
+    def create(self, validated_data):
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(**validated_data)
+        recipe.tags.set(tags)
+        self.get_or_update_ingredients(recipe, ingredients)
         return recipe
 
+    def update(self, instance, validated_data):
+        tags = validated_data.pop('tags')
+        ingredients = validated_data.pop('ingredients')
+        instance = super().update(instance, validated_data)
+        instance.tags.clear()
+        instance.tags.set(tags)
+        self.get_or_update_ingredients(instance, ingredients)
+        instance.save()
+        return instance
 
-# class RecipeListSerializer(serializers.ModelSerializer):
-#     author = UserSerializer(read_only=True)
-#     tags = TagRecipeDetailSerializer(many=True, required=True, allow_null=True)
-#     ingredients = IngredientRecipeDetailSerializer(many=True, required=True)
-#     image = Base64ImageField(required=True)
-#     is_favorited = SerializerMethodField()
-#     is_in_shopping_cart = SerializerMethodField()
-#
-#     class Meta:
-#         model = Recipe
-#         fields = (
-#             'id',
-#             'author',
-#             'ingredients',
-#             'tags',
-#             'is_favorited',
-#             'is_in_shopping_cart',
-#             'image',
-#             'name',
-#             'text',
-#             'cooking_time',
-#         )
-#         depth = 1
-#
-#     def get_is_favorited(self):
-#         return False
-#
-#     def get_is_in_shopping_cart(self):
-#         return False
+
+    # def get_is_favorited(self, obj):
+    #     return False
+    #
+    # def get_is_in_shopping_cart(self, obj):
+    #     return False
