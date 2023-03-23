@@ -37,13 +37,15 @@ class Tag(models.Model):
         'Название',
         max_length=200,
         null=False,
-        blank=False
+        blank=False,
+        unique=True
     )
     color = models.CharField(
         'Цвет в HEX',
         max_length=7,
         null=False,
-        blank=False
+        blank=False,
+        unique=True
     )
     slug = models.SlugField(unique=True, max_length=200)
 
@@ -61,10 +63,6 @@ class Recipe(models.Model):
         User,
         on_delete=models.CASCADE,
         related_name='recipes'
-    )
-    ingredients = models.ManyToManyField(
-        Ingredient,
-        through='RecipeIngredient'
     )
     name = models.CharField(
         'Название рецепта',
@@ -95,8 +93,12 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    recipe = models.ForeignKey(Recipe, on_delete=models.CASCADE)
+    recipe = models.ForeignKey(
+        Recipe,
+        on_delete=models.CASCADE,
+        related_name='ingredients'
+    )
     ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
-    quantity = models.PositiveSmallIntegerField(
+    amount = models.PositiveSmallIntegerField(
         validators=[MinValueValidator(1)]
     )
