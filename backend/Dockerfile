@@ -1,6 +1,7 @@
 FROM python:3.7-slim
 WORKDIR /app
 COPY requirements.txt /app
+COPY Verdana.ttf /usr/share/fonts
 RUN pip3 install -r /app/requirements.txt --no-cache-dir
 COPY . .
 CMD ["gunicorn", "backend.wsgi:application", "--bind", "0.0.0.0:8000"]

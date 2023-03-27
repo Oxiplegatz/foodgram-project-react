@@ -1,7 +1,19 @@
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
+from recipes.models import Recipe
+from tools.common import recipes_counter
 from users.models import User, UserSubscribe
+
+
+class MiniRecipeSerializer(serializers.ModelSerializer):
+    """Сериализатор для компактного представления рецептов на некоторых
+     эндпоинтах."""
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time', )
+        read_only_fields = ('__all__',)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -46,22 +58,20 @@ class UserSerializer(serializers.ModelSerializer):
         return instance
 
     def get_is_subscribed(self, obj):
-        user = self.context.get('request').user
+        user = self.context['request'].user
         if user.is_anonymous:
             return False
         return UserSubscribe.objects.filter(
-            subscriber=user.id, author=obj.id
+            subscriber=user.id,
+            author=obj.id
         ).exists()
 
 
-class PasswordSerializer(serializers.Serializer):
-    """Сериализатор для обновления пароля."""
-    new_password = serializers.CharField(required=True)
-    current_password = serializers.CharField(required=True)
-
-
 class SubscribeSerializer(UserSerializer):
-    """Сериализатор для подписки на юзеров и просмотра подписчиков."""
+    """Сериализатор для подписки на юзеров."""
+    recipes = MiniRecipeSerializer(many=True)
+    recipes_count = SerializerMethodField()
+
     class Meta:
         model = User
         fields = (
@@ -71,10 +81,21 @@ class SubscribeSerializer(UserSerializer):
             'first_name',
             'last_name',
             'is_subscribed',
+            'recipes',
+            'recipes_count'
         )
 
     def get_is_subscribed(self, obj):
         """Это хак, но, поскольку этот сериализатор используется только
          для вьюсетов, в которых залогиненный юзер подписан на автора,
-         значение всегда будет True."""
+         значение всегда будет True, поэтому метод переопределён."""
         return True
+
+    def get_recipes_count(self, obj):
+        return recipes_counter(obj)
+
+
+class PasswordSerializer(serializers.Serializer):
+    """Сериализатор для обновления пароля."""
+    new_password = serializers.CharField(required=True)
+    current_password = serializers.CharField(required=True)

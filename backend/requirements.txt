@@ -10,3 +10,4 @@ pytest-django
 pytest-pythonpath
 psycopg2-binary==2.8.6
 python-dotenv~=0.21.1
+reportlab

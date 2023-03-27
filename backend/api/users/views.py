@@ -1,12 +1,13 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 
 from api.users.permissions import IsOwner
 from api.users.serializers import (
-    UserSerializer, PasswordSerializer, SubscribeSerializer
+    UserSerializer, PasswordSerializer, SubscribeSerializer,
 )
 from users.models import User, UserSubscribe
 
@@ -14,6 +15,7 @@ from users.models import User, UserSubscribe
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    pagination_class = PageNumberPagination
     permission_classes = (IsAuthenticated, )
     lookup_field = 'id'
 
@@ -61,13 +63,17 @@ class UserViewSet(viewsets.ModelViewSet):
                 'Вы не можете подписаться на самого себя.',
                 status=status.HTTP_400_BAD_REQUEST
             )
-        if UserSubscribe.objects.filter(subscriber=user,
-                                        author=author).exists():
+        if UserSubscribe.objects.filter(
+                subscriber=user, author=author).exists():
             return Response(
                 'Вы уже подписаны на этого автора.',
                 status=status.HTTP_400_BAD_REQUEST
             )
-        serializer = SubscribeSerializer(instance=author)
+        UserSubscribe.objects.create(subscriber=user, author=author)
+        serializer = SubscribeSerializer(
+            instance=author,
+            context=self.get_serializer_context()
+        )
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @subscribe.mapping.delete
@@ -80,5 +86,19 @@ class UserViewSet(viewsets.ModelViewSet):
         if subscription:
             subscription.delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response('Вы не подписаны на этого пользователя.',
-                        status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            'Вы не подписаны на этого пользователя.',
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    @action(detail=False, url_path='subscriptions')
+    def get_subscriptions(self, request):
+        subscriptions = User.objects.filter(
+            subscribers__in=self.request.user.subscriber.all()
+        )
+        page = self.paginate_queryset(subscriptions)
+        serializer = SubscribeSerializer(
+            page,
+            many=True
+        )
+        return self.get_paginated_response(serializer.data)

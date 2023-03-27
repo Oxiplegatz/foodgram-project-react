@@ -21,8 +21,13 @@ class UserSubscribe(models.Model):
         related_name='subscribers',
         verbose_name='Автор',
     )
+    subscribe_date = models.DateTimeField(
+        'Дата подписки', auto_now_add=True
+    )
+
 
     class Meta:
+        ordering = ('-subscribe_date', )
         constraints = [
             models.UniqueConstraint(
                 fields=['subscriber', 'author'],
