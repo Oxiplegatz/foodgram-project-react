@@ -1,7 +1,10 @@
+from django.contrib import admin
 from django_filters import ModelMultipleChoiceFilter
 from django_filters.rest_framework import FilterSet, BooleanFilter
 
 from recipes.models import Recipe, Tag
+
+ALPHABET = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
 
 
 class RecipeFilter(FilterSet):
@@ -32,3 +35,23 @@ class RecipeFilter(FilterSet):
     def check_shopping_cart(self, queryset, name, value):
         lookup = '__'.join([name, 'user'])
         return queryset.filter(**{lookup: self.request.user})
+
+
+class FirstLetterFilter(admin.SimpleListFilter):
+    """Алфавитный фильтр элементов по первой букве для админки."""
+    title = 'Первая буква названия'
+    parameter_name = 'letter'
+    letters = list(ALPHABET)
+
+    def lookups(self, request, model_admin):
+        queryset = model_admin.get_queryset(request)
+        lookups = []
+        for letter in self.letters:
+            count = queryset.filter(name__istartswith=letter).count()
+            if count:
+                lookups.append((letter, f'{letter} ({count})'))
+        return lookups
+
+    def queryset(self, request, queryset):
+        if self.value() in self.letters:
+            return queryset.filter(name__istartswith=self.value())

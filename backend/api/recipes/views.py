@@ -2,15 +2,16 @@ from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, status, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.recipes.filters import RecipeFilter
 from api.recipes.serializers import (
     TagSerializer, IngredientSerializer, RecipeSerializer,
 )
+from api.users.permissions import IsAdminOrReadOnly, IsAuthorOrAdminOrReadOnly
 from api.users.serializers import MiniRecipeSerializer
 from recipes.models import (
     Ingredient, Tag, Recipe, RecipeFavorite, RecipeInCart
@@ -19,31 +20,41 @@ from tools.common import draw_pdf
 
 
 class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
-    permission_classes = (AllowAny, )
-    filter_backends = (filters.SearchFilter, )
-    search_fields = ('^name', )
+    permission_classes = (IsAdminOrReadOnly, )
+
+    def get_queryset(self):
+        queryset = Ingredient.objects.all()
+        user_input = self.request.query_params.get('name')
+        if user_input:
+            queryset = queryset.filter(name__istartswith=user_input)
+        return queryset
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
-    permission_classes = (AllowAny, )
+    permission_classes = (IsAdminOrReadOnly, )
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = (AllowAny, )
+    permission_classes = (IsAuthorOrAdminOrReadOnly, )
     filter_backends = (DjangoFilterBackend, )
     filterset_class = RecipeFilter
     lookup_field = 'id'
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
+
+    def get_queryset(self):
+        queryset = Recipe.objects.all().select_related('author')
+        author = self.request.query_params.get('author')
+        if author:
+            queryset = queryset.filter(author_id=author)
+        return queryset
 
     @action(
         detail=True,

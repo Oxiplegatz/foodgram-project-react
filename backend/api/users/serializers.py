@@ -2,7 +2,6 @@ from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
 
 from recipes.models import Recipe
-from tools.common import recipes_counter
 from users.models import User, UserSubscribe
 
 
@@ -59,7 +58,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        if user.is_anonymous:
+        if not user.is_authenticated:
             return False
         return UserSubscribe.objects.filter(
             subscriber=user.id,
@@ -69,7 +68,7 @@ class UserSerializer(serializers.ModelSerializer):
 
 class SubscribeSerializer(UserSerializer):
     """Сериализатор для подписки на юзеров."""
-    recipes = MiniRecipeSerializer(many=True)
+    recipes = serializers.SerializerMethodField()
     recipes_count = SerializerMethodField()
 
     class Meta:
@@ -91,8 +90,14 @@ class SubscribeSerializer(UserSerializer):
          значение всегда будет True, поэтому метод переопределён."""
         return True
 
+    def get_recipes(self, obj):
+        if self.context['view'].detail:
+            return MiniRecipeSerializer(obj.recipes.all(), many=True).data
+        first_three = obj.recipes.all()[:3]
+        return MiniRecipeSerializer(first_three, many=True).data
+
     def get_recipes_count(self, obj):
-        return recipes_counter(obj)
+        return obj.recipes.count()
 
 
 class PasswordSerializer(serializers.Serializer):

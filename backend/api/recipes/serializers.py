@@ -1,6 +1,7 @@
 import base64
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
 
 from api.users.serializers import UserSerializer
@@ -110,8 +111,31 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context['view'].request.user
+        if not user.is_authenticated:
+            return False
         return user.favorites.filter(recipe=obj).exists()
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['view'].request.user
+        if not user.is_authenticated:
+            return False
         return user.recipes_in_cart.filter(recipe=obj).exists()
+
+    def validate(self, data):
+        ingredients = self.initial_data.get('ingredients')
+        tags = self.initial_data.get('tags')
+
+        if not ingredients:
+            raise ValidationError({'ingredients': 'Не указаны ингредиенты.'})
+        if not tags:
+            raise ValidationError({'tags': 'Не указаны id тегов.'})
+
+        unique_ingredients = []
+        for item in ingredients:
+            unique_ingredients.append(item['id'])
+        if len(set(unique_ingredients)) < len(ingredients):
+            raise ValidationError(
+                'Ингредиенты в рецепте не могут повторяться.'
+            )
+
+        return data

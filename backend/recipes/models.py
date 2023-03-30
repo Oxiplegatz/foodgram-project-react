@@ -6,16 +6,16 @@ from users.models import User
 
 class Ingredient(models.Model):
     name = models.CharField(
-        'Название',
         max_length=200,
         null=False,
-        blank=False
+        blank=False,
+        verbose_name='Название'
     )
     measurement_unit = models.CharField(
-        'Единица измерения',
         max_length=200,
         null=False,
-        blank=False
+        blank=False,
+        verbose_name='Единица измерения'
     )
 
     class Meta:
@@ -58,29 +58,43 @@ class Tag(models.Model):
 
 
 class Recipe(models.Model):
-    tags = models.ManyToManyField(Tag, related_name='recipes')
+    tags = models.ManyToManyField(
+        Tag,
+        related_name='recipes',
+        verbose_name='Теги'
+    )
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='recipes'
+        related_name='recipes',
+        verbose_name='Автор'
     )
     name = models.CharField(
-        'Название рецепта',
         max_length=200,
         null=False,
-        blank=False
+        blank=False,
+        verbose_name='Название'
     )
-    pub_date = models.DateTimeField('Дата публикации', auto_now_add=True)
+    pub_date = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата публикации'
+    )
     image = models.ImageField(
         upload_to='recipes/',
         null=False,
-        blank=False
+        blank=False,
+        verbose_name='Картинка'
     )
-    text = models.TextField('Описание рецепта', null=False, blank=False)
+    text = models.TextField(
+        null=False,
+        blank=False,
+        verbose_name='Описание'
+    )
     cooking_time = models.PositiveSmallIntegerField(
         null=False,
         blank=False,
-        validators=[MinValueValidator(1)]
+        validators=[MinValueValidator(1)],
+        verbose_name='Время приготовления (в минутах)'
     )
 
     class Meta:
@@ -96,12 +110,31 @@ class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='ingredients'
+        related_name='ingredients',
+        verbose_name='Рецепт'
     )
-    ingredient = models.ForeignKey(Ingredient, on_delete=models.CASCADE)
+    ingredient = models.ForeignKey(
+        Ingredient,
+        on_delete=models.CASCADE,
+        verbose_name='Ингредиенты'
+    )
     amount = models.PositiveSmallIntegerField(
-        validators=[MinValueValidator(1)]
+        validators=[MinValueValidator(1)],
+        verbose_name=f'Количество'
     )
+
+    class Meta:
+        verbose_name = 'Ингредиент для рецепта'
+        verbose_name_plural = 'Список ингредиентов'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['recipe', 'ingredient'],
+                name='unique_ingredient'
+            ),
+        ]
+
+    def __str__(self):
+        return f'Ингредиент для рецепта {self.recipe.name}'
 
 
 class RecipeFavorite(models.Model):

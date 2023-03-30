@@ -3,7 +3,7 @@ from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
 
 from api.users.permissions import IsOwner
 from api.users.serializers import (
@@ -16,11 +16,22 @@ class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     pagination_class = PageNumberPagination
-    permission_classes = (IsAuthenticated, )
+    permission_classes_by_action = {
+        'create': [AllowAny],
+        'list': [IsAuthenticatedOrReadOnly],
+        'retrieve': [IsAuthenticatedOrReadOnly]
+    }
     lookup_field = 'id'
 
     def get_active_user(self):
         return self.request.user
+
+    def get_permissions(self):
+        try:
+            return [permission() for permission in
+                    self.permission_classes_by_action[self.action]]
+        except KeyError:
+            return [permission() for permission in self.permission_classes]
 
     @action(detail=False, permission_classes=[IsOwner], url_path='me')
     def get_me(self, request):
@@ -99,6 +110,7 @@ class UserViewSet(viewsets.ModelViewSet):
         page = self.paginate_queryset(subscriptions)
         serializer = SubscribeSerializer(
             page,
-            many=True
+            many=True,
+            context=self.get_serializer_context()
         )
         return self.get_paginated_response(serializer.data)
