@@ -20,9 +20,7 @@ services:
       - ./.env
 
   frontend:
-    build:
-      context: ../frontend
-      dockerfile: Dockerfile
+    image: oxiplegatz/foodgram_frontend:latest
     volumes:
       - ../frontend/:/app/result_build/
 
@@ -37,6 +35,7 @@ services:
       - static_value:/var/html/static/
       - media_value:/var/html/media/
     depends_on:
+      - frontend
       - backend
 
 volumes:
