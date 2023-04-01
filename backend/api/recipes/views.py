@@ -26,6 +26,7 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
         user_input = self.request.query_params.get('name')
         if user_input:
             return queryset.filter(name__istartswith=user_input)
+        return queryset
 
 
 class TagViewSet(viewsets.ReadOnlyModelViewSet):
@@ -50,6 +51,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         author = self.request.query_params.get('author')
         if author:
             return queryset.filter(author_id=author)
+        return queryset
 
     @action(
         detail=True,
