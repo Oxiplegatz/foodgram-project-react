@@ -68,8 +68,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     needs: build_and_push_backend_to_docker_hub
-    env_file:
-      - ../backend/.env
     steps:
       - name: executing remote ssh commands to deploy
         uses: appleboy/ssh-action@master
