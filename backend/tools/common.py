@@ -3,9 +3,11 @@ import io
 from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics, ttfonts
 
+
 VERTICAL = 50
 HORIZONTAL = 750
 FONT_SIZE = 10
+
 
 def draw_pdf(data):
     """Функция для создания PDF-файла с ингредиентами для рецептов

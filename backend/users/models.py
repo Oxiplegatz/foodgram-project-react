@@ -25,7 +25,6 @@ class UserSubscribe(models.Model):
         'Дата подписки', auto_now_add=True
     )
 
-
     class Meta:
         ordering = ('-subscribe_date', )
         constraints = [
