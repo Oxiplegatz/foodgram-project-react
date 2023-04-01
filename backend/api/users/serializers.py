@@ -1,7 +1,6 @@
+from recipes.models import Recipe
 from rest_framework import serializers
 from rest_framework.fields import SerializerMethodField
-
-from recipes.models import Recipe
 from users.models import User, UserSubscribe
 
 

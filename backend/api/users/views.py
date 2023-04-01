@@ -1,14 +1,12 @@
+from api.users.permissions import IsOwner
+from api.users.serializers import (PasswordSerializer, SubscribeSerializer,
+                                   UserSerializer)
 from django.shortcuts import get_object_or_404
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny
-
-from api.users.permissions import IsOwner
-from api.users.serializers import (
-    UserSerializer, PasswordSerializer, SubscribeSerializer,
-)
 from users.models import User, UserSubscribe
 
 

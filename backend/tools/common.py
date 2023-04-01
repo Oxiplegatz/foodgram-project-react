@@ -1,8 +1,7 @@
 import io
 
-from reportlab.pdfgen import canvas
 from reportlab.pdfbase import pdfmetrics, ttfonts
-
+from reportlab.pdfgen import canvas
 
 VERTICAL = 50
 HORIZONTAL = 750

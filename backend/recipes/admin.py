@@ -1,7 +1,7 @@
+from api.recipes.filters import FirstLetterFilter
 from django.contrib import admin
 from django.core.exceptions import ValidationError
 from django.forms.models import BaseInlineFormSet
-from api.recipes.filters import FirstLetterFilter
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import User
 
