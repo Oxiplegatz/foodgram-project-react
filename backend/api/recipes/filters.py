@@ -1,7 +1,6 @@
 from django.contrib import admin
 from django_filters import ModelMultipleChoiceFilter
-from django_filters.rest_framework import FilterSet, BooleanFilter
-
+from django_filters.rest_framework import BooleanFilter, FilterSet
 from recipes.models import Recipe, Tag
 
 ALPHABET = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
@@ -55,3 +54,4 @@ class FirstLetterFilter(admin.SimpleListFilter):
     def queryset(self, request, queryset):
         if self.value() in self.letters:
             return queryset.filter(name__istartswith=self.value())
+        return None
