@@ -55,7 +55,7 @@ ROOT_URLCONF = 'backend.urls'
 
 CORS_ALLOWED_ORIGINS = [
     'http://localhost',
-    '159.223.14.232'
+    'http://159.223.14.232'
 ]
 CORS_URLS_REGEX = r'^/api/.*$'
 
