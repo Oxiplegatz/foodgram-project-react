@@ -46,8 +46,8 @@ jobs:
             tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_final:latest
 
   build_and_push_frontend_to_docker_hub:
-    name: Push frontend it to Docker Hub
-    runs-on: ubuntu-22.04
+    name: Push frontend image to Docker Hub
+    runs-on: ubuntu-latest
     steps:
       - name: Check out the repo
         uses: actions/checkout@v2
