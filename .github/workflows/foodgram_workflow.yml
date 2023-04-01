@@ -45,12 +45,12 @@ jobs:
             push: true
             tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_final:latest
 
-  build_push_frontend_to_DockerHub:
-    name: Building front image and pushing it to Docker Hub
+  build_and_push_frontend_to_docker_hub:
+    name: Push frontend it to Docker Hub
     runs-on: ubuntu-22.04
     steps:
       - name: Check out the repo
-      - uses: actions/checkout@v2
+        uses: actions/checkout@v2
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to Docker
