@@ -1,1 +1,4 @@
-# praktikum_new_diplom
+# Сайт рецептов Foodgram
+## Установка
+
+
