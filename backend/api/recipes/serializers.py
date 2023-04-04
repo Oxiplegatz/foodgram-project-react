@@ -137,7 +137,7 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         if set(ingredients) < ingredients:
             raise ValidationError(
-                    'Ингредиенты в рецепте не могут повторяться.'
-                )
+                'Ингредиенты в рецепте не могут повторяться.'
+            )
 
         return data
