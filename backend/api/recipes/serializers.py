@@ -1,11 +1,12 @@
 import base64
 
-from api.users.serializers import UserSerializer
 from django.core.files.base import ContentFile
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 from rest_framework.fields import SerializerMethodField
+
+from api.users.serializers import UserSerializer
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
 
 class Base64ImageField(serializers.ImageField):
@@ -80,23 +81,27 @@ class RecipeSerializer(serializers.ModelSerializer):
         self.fields['tags'] = TagSerializer(many=True, read_only=True)
         return super().to_representation(instance)
 
-    def get_or_update_ingredients(self, recipe, ingredients):
+    def update_ingredients(self, recipe, ingredients):
         current_ingredients = RecipeIngredient.objects.filter(recipe=recipe)
         if current_ingredients:
             current_ingredients.delete()
+        ingredients_to_update = []
         for ingredient in ingredients:
-            RecipeIngredient.objects.get_or_create(
-                recipe=recipe,
-                ingredient=ingredient['id'],
-                amount=ingredient['amount']
+            ingredients_to_update.append(
+                RecipeIngredient(
+                    recipe=recipe,
+                    ingredient=ingredient['id'],
+                    amount=ingredient['amount']
+                )
             )
+        RecipeIngredient.objects.bulk_create(ingredients_to_update)
 
     def create(self, validated_data):
         tags = validated_data.pop('tags')
         ingredients = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(**validated_data)
         recipe.tags.set(tags)
-        self.get_or_update_ingredients(recipe, ingredients)
+        self.update_ingredients(recipe, ingredients)
         return recipe
 
     def update(self, instance, validated_data):
@@ -105,7 +110,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         instance = super().update(instance, validated_data)
         instance.tags.clear()
         instance.tags.set(tags)
-        self.get_or_update_ingredients(instance, ingredients)
+        self.update_ingredients(instance, ingredients)
         instance.save()
         return instance
 
@@ -130,12 +135,9 @@ class RecipeSerializer(serializers.ModelSerializer):
         if not tags:
             raise ValidationError({'tags': 'Не указаны id тегов.'})
 
-        unique_ingredients = []
-        for item in ingredients:
-            unique_ingredients.append(item['id'])
-        if len(set(unique_ingredients)) < len(ingredients):
+        if set(ingredients) < ingredients:
             raise ValidationError(
-                'Ингредиенты в рецепте не могут повторяться.'
-            )
+                    'Ингредиенты в рецепте не могут повторяться.'
+                )
 
         return data

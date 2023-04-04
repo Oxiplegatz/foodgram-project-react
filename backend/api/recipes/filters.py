@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django_filters import ModelMultipleChoiceFilter
 from django_filters.rest_framework import BooleanFilter, FilterSet
+
 from recipes.models import Recipe, Tag
 
 ALPHABET = 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ'
