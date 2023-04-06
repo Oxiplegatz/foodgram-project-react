@@ -66,3 +66,17 @@ sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-
 
 Выполните шаги 1 и 2 выше.  
 Готово! Главная страница проекта должна работать по адресу http://<server_ip>/recipes
+
+## Примеры запросов к API и доступные эндпоинты
+
+`POST auth/token/login/` — получить токен авторизации
+
+`GET recipes/` — получить список рецептов  
+`POST recipes/` — создать рецепт  
+`GET recipes/{id}/` — получить рецепт по id
+
+`POST users/` — создать пользователя  
+`GET users/` — получить список пользователей  
+`GET users/{id}/` — получить пользователя по id
+
+Полную документацию API можно посмотреть по урлу api/docs/
