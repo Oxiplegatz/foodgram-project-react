@@ -4,6 +4,8 @@ from rest_framework.fields import SerializerMethodField
 from recipes.models import Recipe
 from users.models import User, UserSubscribe
 
+THREE = 3
+
 
 class MiniRecipeSerializer(serializers.ModelSerializer):
     """Сериализатор для компактного представления рецептов на некоторых
@@ -93,7 +95,7 @@ class SubscribeSerializer(UserSerializer):
     def get_recipes(self, obj):
         if self.context['view'].detail:
             return MiniRecipeSerializer(obj.recipes.all(), many=True).data
-        first_three = obj.recipes.all()[:3]
+        first_three = obj.recipes.all()[:THREE]
         return MiniRecipeSerializer(first_three, many=True).data
 
     def get_recipes_count(self, obj):

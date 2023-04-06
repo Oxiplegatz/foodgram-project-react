@@ -12,7 +12,7 @@
 публиковать свои рецепты. Можно подписываться на других пользователей,
 добавлять рецепты в избранное, а также составить и скачать список покупок.
 
-Проект доступен по адресу http://159.223.14.232/recipes
+Проект, реализованный с фронтендом на React, доступен по адресу http://159.223.14.232/recipes
 
 ## Как работать с репозиторием
 Клонировать репозиторий на локальную машину  
@@ -25,7 +25,20 @@
 
 `- ../docs/:/usr/share/nginx/html/api/docs/`
 
-Затем из папки infra/ выполните команды  
+Шаг 1. Создайте файл .env с переменными окружения
+(при локальном запуске файл нужно создать в папке infra/)  
+```
+DB_ENGINE=django.db.backends.postgresql
+DB_NAME=<имя_бд>
+POSTGRES_DB=<имя_создаваемой_бд>
+POSTGRES_USER=<имя_пользователя>
+POSTGRES_PASSWORD=<пароль>
+DB_HOST=db
+DB_PORT=5432
+SECRET_KEY=<SECRET_KEY_вашего_проекта>
+```
+
+Шаг 2. Выполните команды (при локальном запуске из папки infra/)  
 ```
 docker-compose up -d  
 docker-compose exec backend python manage.py migrate  
@@ -34,7 +47,7 @@ docker-compose exec backend python manage.py collectstatic --no-input
 ```  
 
 Всё! Проект доступен на локалхосте, документацию можно посмотреть по
-адресу http://127.0.0.1/api/docs/
+адресу http://localhost/api/docs/
 ## Запуск на виртуальной машине
 Установите на виртуальную машину Docker и Docker Compose  
 ```
@@ -51,12 +64,5 @@ sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-
 
 Создайте на сервере папку foodgram_docs и скопируйте в неё содержимое папки docs
 
-Затем выполните команды  
-```
-docker-compose up -d  
-docker-compose exec backend python manage.py migrate  
-docker-compose exec backend python manage.py createsuperuser  
-docker-compose exec backend python manage.py collectstatic --no-input
-```  
-
-Готово!
+Выполните шаги 1 и 2 выше.  
+Готово! Главная страница проекта должна работать по адресу http://<server_ip>/recipes
