@@ -80,3 +80,5 @@ sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-
 `GET users/{id}/` — получить пользователя по id
 
 Полную документацию API можно посмотреть по урлу api/docs/
+
+API by [Alexei Kadaner](https://github.com/Oxiplegatz)
